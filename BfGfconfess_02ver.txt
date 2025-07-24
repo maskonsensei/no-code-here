@@ -1,0 +1,108 @@
+import turtle
+import time
+import random
+import colorsys
+import _tkinter
+
+screen = turtle.Screen()
+screen.bgcolor('black')
+screen.title('heart,heart,heart!!!')
+screen.tracer(0)
+
+heart = turtle.Turtle()
+heart.speed(0)
+heart.hideturtle()
+
+heart_pixel = [
+    [0, 1, 1, 0, 0, 0, 1, 1, 0],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+    [0, 0, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0]
+]
+
+pixel_size = 20
+spacing = 2
+
+width = len(heart_pixel[0]) * (pixel_size + spacing)
+height = len(heart_pixel) * (pixel_size + spacing)
+
+start_x = -width // 2
+start_y = height // 2
+
+def get_color(hue):
+    r, g, b = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+    return (r, g, b)
+
+def draw_heart(hue, brightness=1.0):
+    if not hasattr(screen, 'cv') or screen.cv is None:
+        return
+
+    heart.clear()
+    color = get_color(hue)
+
+    for row in range(len(heart_pixel)):
+        for col in range(len(heart_pixel[row])):
+            if heart_pixel[row][col] == 1:
+                x = start_x + col * (pixel_size + spacing)
+                y = start_y - row * (pixel_size + spacing)
+
+                heart.penup()
+                heart.goto(x, y)
+                heart.pendown()
+
+                r, g, b = color
+                r = min(1.0, r * brightness)
+                g = min(1.0, g * brightness)
+                b = min(1.0, b * brightness)
+                heart.color(r, g, b)
+
+                heart.begin_fill()
+                for _ in range(4):
+                    heart.forward(pixel_size)
+                    heart.right(90)
+                heart.end_fill()
+    try:
+        screen.update()
+    except turtle.Terminator:
+        pass
+
+screen.listen()
+screen.onkey(screen.bye, 'Escape')
+
+def main_loop():
+    try:
+        hue = 0.0
+        pulse_direction = 0.02
+        brightness = 1.0
+
+        while True:
+            if not hasattr(screen, 'cv') or screen.cv is None or not turtle.TurtleScreen._RUNNING:
+                break
+
+            for b in [i * 0.1 for i in range(1, 11)]:
+                draw_heart(hue, b)
+                time.sleep(0.05)
+
+            hue = (hue + 0.01) % 1.0
+            brightness += pulse_direction
+            if brightness >= 1.2 or brightness <= 0.8:
+                pulse_direction *= -1
+
+            if random.random() < 0.1:
+                draw_heart(hue, brightness * random.uniform(0.7, 1.3))
+                time.sleep(0.05)
+
+            draw_heart(hue, brightness)
+            time.sleep(0.03)
+
+    except (turtle.Terminator, _tkinter.TclError):
+        pass
+
+try:
+    main_loop()
+except (turtle.Terminator, _tkinter.TclError):
+    pass
